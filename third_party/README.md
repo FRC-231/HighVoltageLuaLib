@@ -8,6 +8,10 @@
 Both are vendored rather than fetched, so this repository builds with no network
 access and the exact Lua version is pinned to whatever the robot was tested against.
 
+Licensing and redistribution obligations are in
+[../THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md). This file covers the
+technical details only.
+
 ## Lua
 
 `third_party/lua/` is an unmodified copy of the upstream Lua 5.4.4 source tree.
