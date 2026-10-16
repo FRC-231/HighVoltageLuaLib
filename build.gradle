@@ -1,0 +1,87 @@
+import edu.wpi.first.toolchain.*
+
+plugins {
+    id 'c'
+    id 'cpp'
+    id 'google-test'
+    id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
+    id 'edu.wpi.first.NativeUtils' version '2026.0.1'
+    id 'edu.wpi.first.GradleVsCode' version '2.1.0'
+}
+
+// Only used by native-utils' dependency configuration. This library does not
+// link against WPILib - see the component below.
+ext.wpilibVersion = "2026.+"
+
+repositories {
+    mavenCentral()
+}
+if (project.hasProperty('releaseMode')) {
+    wpilibRepositories.addAllReleaseRepositories(project)
+} else {
+    wpilibRepositories.addAllDevelopmentRepositories(project)
+}
+
+apply from: 'config.gradle'
+
+nativeUtils {
+    exportsConfigs {
+        // Empty config exports everything.
+        HighVoltageLuaLib {
+        }
+    }
+}
+
+model {
+    components {
+        HighVoltageLuaLib(NativeLibrarySpec) {
+            sources {
+                // Vendored Lua 5.4.4. Compiled into this same component on
+                // purpose: consumers link one static library, not two.
+                c {
+                    source {
+                        srcDirs 'third_party/lua/src'
+                        include '**/*.c'
+                        // Both define main() - they are the standalone
+                        // interpreter and compiler, not part of the library.
+                        exclude 'lua.c', 'luac.c'
+                    }
+                    exportedHeaders {
+                        srcDirs 'third_party/lua/src'
+                    }
+                }
+                cpp {
+                    source {
+                        srcDirs 'src/main/native/cpp'
+                        include '**/*.cpp'
+                    }
+                    exportedHeaders {
+                        srcDirs 'src/main/native/include',
+                                'third_party/lua/src',
+                                'third_party/LuaBridge3'
+                    }
+                }
+            }
+            // Deliberately no nativeUtils.useRequiredLibrary(it, 'wpilib_shared').
+            // This library depends on nothing but Lua, LuaBridge3 and the STL.
+        }
+    }
+    testSuites {
+        // The google-test plugin creates <Component>Test automatically.
+        HighVoltageLuaLibTest {
+            sources.cpp {
+                source {
+                    srcDir 'src/test/native/cpp'
+                    include '**/*.cpp'
+                }
+            }
+            nativeUtils.useRequiredLibrary(it, 'googletest_static')
+        }
+    }
+}
+
+apply from: 'publish.gradle'
+
+wrapper {
+    gradleVersion = '8.14.3'
+}

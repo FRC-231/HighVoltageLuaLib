@@ -1,0 +1,175 @@
+apply plugin: 'maven-publish'
+
+ext.licenseFile = files("$rootDir/LICENSE.txt", "$rootDir/third_party/LICENSES.md")
+
+def templateVendorFile = "HighVoltageLuaLib.json"
+
+def pubVersion = '2026.1.0'
+
+def outputsFolder = file("$buildDir/outputs")
+def versionFile = file("$outputsFolder/version.txt")
+
+task outputVersions() {
+    description = 'Prints the version to a file for use by downstream packaging'
+    group = 'Build'
+    outputs.files(versionFile)
+
+    doFirst {
+        buildDir.mkdir()
+        outputsFolder.mkdir()
+    }
+
+    doLast {
+        versionFile.write pubVersion
+    }
+}
+
+task libraryBuild() {}
+
+build.dependsOn outputVersions
+
+task copyAllOutputs(type: Copy) {
+    destinationDir = file("$buildDir/allOutputs")
+    from versionFile
+    dependsOn outputVersions
+}
+
+build.dependsOn copyAllOutputs
+copyAllOutputs.dependsOn outputVersions
+
+ext.addTaskToCopyAllOutputs = { task ->
+    copyAllOutputs.dependsOn task
+    copyAllOutputs.inputs.file task.archiveFile
+    copyAllOutputs.from task.archiveFile
+}
+
+def artifactGroupId = 'com.frc231.highvoltage'
+def baseArtifactId = 'HighVoltageLuaLib'
+def zipBaseName = "_GROUP_com_frc231_highvoltage_ID_${baseArtifactId}-cpp_CLS"
+
+// The headers zip is the part that is easy to get wrong. Every public header in
+// include/Keeko/ includes "lua.h", "lauxlib.h" and "lualib.h", and all but
+// LuaException.h also include "LuaBridge.h". A consumer that includes
+// "Keeko/ThreadedScript.h" therefore needs those on its include path, so they
+// have to ship inside this zip.
+//
+// Only Lua's five PUBLIC headers go in. third_party/lua/src also contains 22
+// internal headers (lstate.h, lobject.h, ...) which must not land in a
+// consumer's include path.
+task cppHeadersZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = zipBaseName
+    archiveClassifier = "headers"
+
+    from(licenseFile) {
+        into '/'
+    }
+
+    from('src/main/native/include') {
+        into '/'
+    }
+
+    from('third_party/lua/src') {
+        include 'lua.h', 'luaconf.h', 'lauxlib.h', 'lualib.h', 'lua.hpp'
+        into '/'
+    }
+
+    from('third_party/LuaBridge3') {
+        include '**/*.h'
+        into '/'
+    }
+}
+
+// Debugger source lookup only - NOT compiled by consumers.
+task cppSourceZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = zipBaseName
+    archiveClassifier = "sources"
+
+    from(licenseFile) {
+        into '/'
+    }
+
+    from('src/main/native/cpp') {
+        into '/'
+    }
+}
+
+build.dependsOn cppHeadersZip
+addTaskToCopyAllOutputs(cppHeadersZip)
+build.dependsOn cppSourceZip
+addTaskToCopyAllOutputs(cppSourceZip)
+
+// Expands ${version}, ${groupId}, ${artifactId} in the vendordep template.
+task vendordepJson() {
+    description = 'Builds the vendordep json file.'
+    group = 'Build'
+    outputs.file("$buildDir/repos/$templateVendorFile")
+
+    copy {
+        from templateVendorFile
+        into "$buildDir/repos/"
+        expand(version: pubVersion,
+               groupId: artifactGroupId,
+               artifactId: baseArtifactId)
+    }
+}
+
+task vendordepJsonZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = "vendordepJson"
+
+    from("$buildDir/repos/$templateVendorFile") {
+        into '/'
+    }
+    dependsOn vendordepJson
+}
+
+addTaskToCopyAllOutputs(vendordepJsonZip)
+build.dependsOn vendordepJsonZip
+libraryBuild.dependsOn build
+
+def releasesRepoUrl = "$buildDir/repos/releases"
+
+publishing {
+    repositories {
+        maven {
+            url = releasesRepoUrl
+        }
+    }
+}
+
+task cleanReleaseRepo(type: Delete) {
+    delete releasesRepoUrl
+}
+
+tasks.matching {it != cleanReleaseRepo}.all {it.dependsOn cleanReleaseRepo}
+
+model {
+    publishing {
+        def taskList = createComponentZipTasks($.components, ['HighVoltageLuaLib'], zipBaseName,
+                                               Zip, project, includeStandardZipFormat)
+
+        publications {
+            cpp(MavenPublication) {
+                taskList.each {
+                    artifact it
+                }
+                artifact cppHeadersZip
+                artifact cppSourceZip
+
+                artifactId = "${baseArtifactId}-cpp"
+                groupId = artifactGroupId
+                version = pubVersion
+            }
+
+            vendordep(MavenPublication) {
+                artifact vendordepJsonZip
+
+                artifactId = "${baseArtifactId}-vendordep"
+                groupId = artifactGroupId
+                version = pubVersion
+            }
+        }
+    }
+}
