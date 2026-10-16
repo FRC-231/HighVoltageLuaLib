@@ -1,7 +1,6 @@
 import edu.wpi.first.toolchain.*
 
 plugins {
-    id 'c'
     id 'cpp'
     id 'google-test'
     id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
@@ -36,24 +35,13 @@ model {
     components {
         HighVoltageLuaLib(NativeLibrarySpec) {
             sources {
-                // Vendored Lua 5.4.4. Compiled into this same component on
-                // purpose: consumers link one static library, not two.
-                c {
-                    source {
-                        srcDirs 'third_party/lua/src'
-                        include '**/*.c'
-                        // Both define main() - they are the standalone
-                        // interpreter and compiler, not part of the library.
-                        exclude 'lua.c', 'luac.c'
-                    }
-                    exportedHeaders {
-                        srcDirs 'third_party/lua/src'
-                    }
-                }
                 cpp {
                     source {
-                        srcDirs 'src/main/native/cpp'
-                        include '**/*.cpp'
+                        srcDirs 'src/main/native/cpp', 'third_party/lua/src'
+                        include '**/*.cpp', '**/*.c'
+                        // lua.c and luac.c both define main() - they are the
+                        // standalone interpreter and compiler, not library code.
+                        exclude '**/lua.c', '**/luac.c'
                     }
                     exportedHeaders {
                         srcDirs 'src/main/native/include',
@@ -62,6 +50,18 @@ model {
                     }
                 }
             }
+            // NOTE: Lua's .c files are deliberately in the *cpp* source set, so
+            // g++ compiles them as C++ rather than C. This is not a tidiness
+            // choice - it is required. Lua's headers have no extern "C" guards
+            // (that is what lua.hpp is for), and this library's public headers
+            // include "lua.h" directly. Compiling Lua as C would give its
+            // symbols C linkage while every C++ call site expects C++ linkage,
+            // and the link fails with hundreds of undefined references.
+            //
+            // It also matches how FRC231_2026 built Lua before the split, so
+            // behaviour is unchanged. Note that Lua-as-C++ uses exceptions
+            // rather than longjmp for error handling, which is the safer of
+            // the two when C++ destructors are on the stack.
             // Deliberately no nativeUtils.useRequiredLibrary(it, 'wpilib_shared').
             // This library depends on nothing but Lua, LuaBridge3 and the STL.
         }
