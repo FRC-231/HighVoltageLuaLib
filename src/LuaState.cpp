@@ -4,7 +4,7 @@
 #include <fstream>
 #include <streambuf>
 
-namespace Keeko
+namespace HighVoltage
 {
 
 LuaState::LuaState()
@@ -62,4 +62,4 @@ void LuaState::addGlobalObject(void* ptr, const luaL_Reg functions[], std::strin
     lua_setglobal(state, name.c_str());/* Make global */
 }
 
-} // namespace Keeko
+} // namespace HighVoltage

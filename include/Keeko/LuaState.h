@@ -13,7 +13,7 @@
 //My Includes
 #include "Keeko/LuaException.h"
 
-namespace Keeko
+namespace HighVoltage
 {
 class LuaState
 {
@@ -44,5 +44,5 @@ public:
 protected:
     lua_State* state = nullptr;
 };
-} // namespace Keeko
+} // namespace HighVoltage
 

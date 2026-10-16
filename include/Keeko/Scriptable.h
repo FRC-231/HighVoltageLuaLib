@@ -11,18 +11,18 @@
 #include "Keeko/LuaState.h"
 
 
-namespace Keeko
+namespace HighVoltage
 {
 
 class Scriptable
 {
 public:
     virtual void addClassToState(lua_State* state) = 0;
-    inline void addClassToState(const Keeko::LuaState& state)
+    inline void addClassToState(const HighVoltage::LuaState& state)
     {
         lua_State* ls = state;
         addClassToState(ls);
     }
 };
 
-} // namespace Keeko
+} // namespace HighVoltage

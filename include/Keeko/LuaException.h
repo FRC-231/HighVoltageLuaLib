@@ -9,7 +9,7 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-namespace Keeko
+namespace HighVoltage
 {
 
 class LuaException: public std::exception
@@ -25,4 +25,4 @@ protected:
     std::string error;
 };
 
-} // namespace Keeko
+} // namespace HighVoltage

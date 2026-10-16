@@ -23,7 +23,7 @@
 #include "Keeko/Scriptable.h"
 
 
-namespace Keeko
+namespace HighVoltage
 {
 
 class ThreadedScript
@@ -71,4 +71,4 @@ private:
     std::mutex mtx;//Mutex used for condition wait
 };
 
-} // namespace Keeko
+} // namespace HighVoltage

@@ -1,6 +1,6 @@
 #include "Keeko/ThreadedScript.h"
 
-namespace Keeko
+namespace HighVoltage
 {
 
 ThreadedScript::ThreadedScript()
@@ -171,4 +171,4 @@ void ThreadedScript::setOnFailCallback(std::function<void()> cb)
     onFailCallback = cb;
 }
 
-} // namespace Keeko
+} // namespace HighVoltage

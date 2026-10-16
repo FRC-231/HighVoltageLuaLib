@@ -1,6 +1,6 @@
 #include "Keeko/LuaException.h"
 
-namespace Keeko
+namespace HighVoltage
 {
 
 LuaException::LuaException(lua_State* state)
