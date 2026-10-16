@@ -126,3 +126,10 @@ One branch per season (`2026`, `2027`, ...), `master` tracking the current one.
 Releases are tagged `v2026.1.0`; pushing a `v*` tag publishes to GitHub Pages.
 A robot project pins an exact version string in its vendordep json, so an
 in-season change here can never silently alter a competition-ready robot.
+
+## Vendordep UUID
+
+`cfc9f6b6-fb8d-4182-9d08-7295273a88f7`
+
+Generated once. **Never change it** — it is how the VS Code extension identifies
+this library and detects duplicate or conflicting vendordeps.

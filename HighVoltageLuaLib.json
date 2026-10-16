@@ -3,7 +3,7 @@
     "name": "HighVoltageLuaLib",
     "version": "${version}",
     "frcYear": "2026",
-    "uuid": "REPLACE-ME-RUN-uuidgen-ONCE-THEN-NEVER-CHANGE",
+    "uuid": "cfc9f6b6-fb8d-4182-9d08-7295273a88f7",
     "mavenUrls": [
         "https://frc-231.github.io/HighVoltageLuaLib/repo/"
     ],
