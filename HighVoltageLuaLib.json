@@ -1,0 +1,30 @@
+{
+    "fileName": "HighVoltageLuaLib.json",
+    "name": "HighVoltageLuaLib",
+    "version": "2026.1.0",
+    "frcYear": "2026",
+    "uuid": "cfc9f6b6-fb8d-4182-9d08-7295273a88f7",
+    "mavenUrls": [
+        "https://frc-231.github.io/HighVoltageLuaLib/repo/"
+    ],
+    "jsonUrl": "https://frc-231.github.io/HighVoltageLuaLib/HighVoltageLuaLib.json",
+    "javaDependencies": [],
+    "jniDependencies": [],
+    "cppDependencies": [
+        {
+            "groupId": "com.frc231.highvoltage",
+            "artifactId": "HighVoltageLuaLib-cpp",
+            "version": "2026.1.0",
+            "libName": "HighVoltageLuaLib",
+            "headerClassifier": "headers",
+            "sourcesClassifier": "sources",
+            "sharedLibrary": false,
+            "skipInvalidPlatforms": true,
+            "binaryPlatforms": [
+                "linuxathena",
+                "linuxx86-64",
+                "windowsx86-64"
+            ]
+        }
+    ]
+}
